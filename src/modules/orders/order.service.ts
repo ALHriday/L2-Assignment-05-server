@@ -1,6 +1,4 @@
-import { title } from "node:process";
 import { prisma } from "../../../lib/prisma"
-import { email, number } from "better-auth";
 
 export interface Orders {
     name: string;
@@ -27,38 +25,40 @@ const createOrder = async (payload: Orders, currentUserId?: string) => {
     const { orderItems, name, phone, cashOnDelivery, shippingAddress } = payload;
 
     try {
-        return prisma.$transaction(async (tx) => {
 
-            if (!orderItems || orderItems.length === 0) {
-                return alert('Your Cart is Empty!');
+
+        if (!orderItems || orderItems.length === 0) {
+            throw new Error('Your Cart is Empty!');
+        }
+        const medicineIds = orderItems.map((i: any) => i.medicineId);
+
+        const medicines = await prisma.medicines.findMany({ where: { id: { in: medicineIds } } });
+
+        let totalPrice: number = 0;
+
+        const orderItemsData = orderItems.map((items: OrderItemsData) => {
+            const medicine = medicines.find((m) => m.id === items.medicineId);
+
+            if (!medicine) {
+                throw new Error("Medicine not found!");
+            };
+
+            if (medicine.stock < items.quantity) {
+                throw new Error(`${medicine.title} is out of stock!`);
             }
-            const medicineIds = orderItems.map((i: any) => i.medicineId);
 
-            const medicines = await tx.medicines.findMany({ where: { id: { in: medicineIds } } })
+            const subTotal: number = medicine.price * items.quantity;
+            totalPrice += subTotal;
 
-            let totalPrice: number = 0;
+            return {
+                medicineId: medicine.id,
+                title: medicine.title,
+                price: medicine.price,
+                quantity: items.quantity,
+            }
+        });
 
-            const orderItemsData = orderItems.map((items: OrderItemsData) => {
-                const medicine = medicines.find((m) => m.id === items.medicineId);
-
-                if (!medicine) {
-                    throw new Error("Medicine not found!")
-                };
-
-                if (medicine.stock < items.quantity) {
-                    throw new Error(`${medicine.title} is out of stock!`);
-                }
-
-                const subTotal: number = medicine.price * items.quantity;
-                totalPrice += subTotal;
-
-                return {
-                    medicineId: medicine.id,
-                    title: medicine.title,
-                    price: medicine.price,
-                    quantity: items.quantity,
-                }
-            });
+        return prisma.$transaction(async (tx) => {
 
             const order = await tx.orders.create({
                 data: {
@@ -73,21 +73,23 @@ const createOrder = async (payload: Orders, currentUserId?: string) => {
                 include: { orderItems: true }
             });
 
-            for (const item of orderItems) {
-                await tx.medicines.update({
-                    where: { id: item.medicineId },
-                    data: {
-                        stock: {
-                            decrement: item.quantity
+            await Promise.all(
+                orderItems.map(async (item) => {
+                    await tx.medicines.update({
+                        where: { id: item.medicineId },
+                        data: {
+                            stock: {
+                                decrement: item.quantity
+                            }
                         }
-                    }
+                    })
                 })
-            }
+            );
 
             return order;
-        });
+        }, { timeout: 20000 });
     } catch (err: any) {
-        return err;
+        return { status: false, message: err.message || 'Something went wrong!' };
     }
 }
 
@@ -111,7 +113,10 @@ const getAllOrders = async (currentUserId: string) => {
 
 // Get order by orderId => Seller
 const getOrderById = async (orderId: string) => {
-    return await prisma.orders.findUnique({ where: { id: orderId } })
+    return await prisma.orders.findUnique({
+        where: { id: orderId },
+        include: { orderItems: true }
+    })
 }
 // Update order status by Seller.
 const updateOrderStatusById = async (orderId: string, payload: Status) => {

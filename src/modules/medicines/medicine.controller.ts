@@ -59,10 +59,16 @@ const deleteMedicine = async (req: Request, res: Response) => {
         });
     }
 };
+
+type Sort = 'asc' | 'desc';
+
 const getMedicines = async (req: Request, res: Response) => {
 
+    const { search, manufacturer, sort, categoryId, skip } = req.query;
+    const skipItem = skip ? Number(skip) : 0;
+
     try {
-        const result = await medicinesServices.getMedicines();
+        const result = await medicinesServices.getMedicines(search as string, manufacturer as string, sort as Sort, categoryId as string, skipItem);
 
         res.status(200).json({
             success: true,
@@ -82,6 +88,13 @@ const getMedicineById = async (req: Request, res: Response) => {
 
     try {
         const result = await medicinesServices.getMedicineById(req.params?.id as string);
+
+        if (!result) {
+            return res.status(404).json({
+                success: false,
+                message: "Medicine Not Found!.",
+            });
+        }
 
         res.status(200).json({
             success: true,
@@ -113,6 +126,23 @@ const getMedicinesCategories = async (req: Request, res: Response) => {
         });
     }
 };
+const getStats = async (req: Request, res: Response) => {
+
+    try {
+        const result = await medicinesServices.getStats();
+        res.status(200).json({
+            success: true,
+            message: "success.",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 
 export const medicinesController = {
@@ -122,5 +152,6 @@ export const medicinesController = {
     getMedicines,
     getMedicineById,
     getMedicinesCategories,
+    getStats,
 
 }
