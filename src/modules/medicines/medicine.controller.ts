@@ -5,7 +5,7 @@ import { UserRole } from "../../middlewares/auth";
 const createMedicine = async (req: Request, res: Response) => {
     const userId = req.user?.id;
     try {
-        const result = await medicinesServices.createMedicine(req.body, userId as string);
+        const result = await medicinesServices.createMedicine(req.body, userId as string, req.file?.path);
 
         res.status(201).json({
             success: true,
@@ -127,6 +127,41 @@ const getMedicinesCategories = async (req: Request, res: Response) => {
         });
     }
 };
+const getAllCategory = async (req: Request, res: Response) => {
+
+    try {
+        const result = await medicinesServices.getAllCategory();
+        res.status(200).json({
+            success: true,
+            message: "All Medicines category retrieved successfully.",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+const getMedicineByUser = async (req: Request, res: Response) => {
+
+    try {
+        const result = await medicinesServices.getMedicineByUser(req.user?.id as string);
+        res.status(200).json({
+            success: true,
+            message: "All Medicines retrieved successfully.",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 type User = {
     id: string;
@@ -150,6 +185,23 @@ const getStats = async (req: Request, res: Response) => {
         });
     }
 };
+const getMedicinesLen = async (req: Request, res: Response) => {
+
+    try {
+        const result = await medicinesServices.getMedicinesLen();
+        res.status(200).json({
+            success: true,
+            message: "success.",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
 
 
 export const medicinesController = {
@@ -160,5 +212,7 @@ export const medicinesController = {
     getMedicineById,
     getMedicinesCategories,
     getStats,
-
+    getMedicinesLen,
+    getAllCategory,
+    getMedicineByUser,
 }

@@ -1,24 +1,36 @@
+import { uploadImage } from "../../../lib/cloudinary";
 import { prisma } from "../../../lib/prisma";
 import { UserRole } from "../../middlewares/auth";
 
 export interface medicineModel {
-    title: string
-    image?: string
-    price: number
-    stock: number
-    manufacturer: string
-    description: string
-    categoryId: string
+    title: string;
+    image: string;
+    price: number;
+    stock: number;
+    manufacturer: string;
+    description: string;
+    categoryId: string;
 };
 // Seller
-const createMedicine = async (payload: medicineModel, currentUserId: string) => {
-    const { title, image, price, stock, manufacturer, description, categoryId } = payload;
+const createMedicine = async (payload: medicineModel, currentUserId: string, file: any) => {
+    if (!payload) {
+        throw new Error("Payload is required!");
+    }
+
+    const { title, price, stock, manufacturer, description, categoryId } = payload;
+
+    if (!file) {
+        throw new Error("No file");
+    }
+
+    const imageURL = await uploadImage(file);
+
     const medicine = await prisma.medicines.create({
         data: {
             title,
-            image,
-            stock,
-            price,
+            image: String(imageURL),
+            stock: Number(stock),
+            price: Number(price),
             manufacturer,
             description,
             user: {
@@ -29,7 +41,6 @@ const createMedicine = async (payload: medicineModel, currentUserId: string) => 
             },
         }
     });
-
     return medicine;
 };
 
@@ -69,6 +80,13 @@ const getStats = async (userId: string, userRole: UserRole) => {
     }
 };
 
+
+const getMedicinesLen = async () => {
+    const totalMedicines = await prisma.medicines.count();
+    return { totalMedicines };
+}
+
+
 // All Users
 const getMedicines = async (search?: string, m?: string, sort?: 'asc' | 'desc', categoryId?: string, skip?: number) => {
     const where: any = {};
@@ -103,6 +121,12 @@ const getMedicineById = async (medicineId: string) => {
 const getMedicinesCategories = async () => {
     return await prisma.medicines.findMany({ select: { category: true }, distinct: ['categoryId'], });
 };
+const getAllCategory = async () => {
+    return await prisma.categories.findMany();
+};
+const getMedicineByUser = async (userId: string) => {
+    return await prisma.medicines.findMany({ where: { userId: userId } });
+};
 
 export const medicinesServices = {
     createMedicine,
@@ -112,4 +136,7 @@ export const medicinesServices = {
     getMedicineById,
     getMedicinesCategories,
     getStats,
+    getMedicinesLen,
+    getAllCategory,
+    getMedicineByUser,
 };
