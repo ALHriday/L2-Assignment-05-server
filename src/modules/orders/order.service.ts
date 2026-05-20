@@ -6,6 +6,7 @@ export interface Orders {
     shippingAddress: string;
     cashOnDelivery: boolean;
     orderItems: OrderItemsData[];
+    userId: string;
 }
 
 export interface OrderItemsData {
@@ -22,8 +23,8 @@ interface Status {
     status: OrderStatus;
 }
 // Create order by customer.
-const createOrder = async (payload: Orders, currentUserId?: string) => {
-    const { orderItems, name, phone, cashOnDelivery, shippingAddress } = payload;
+const createOrder = async (payload: Orders) => {
+    const { orderItems, name, phone, cashOnDelivery, shippingAddress, userId } = payload;
 
     try {
 
@@ -70,7 +71,7 @@ const createOrder = async (payload: Orders, currentUserId?: string) => {
                     totalAmount: totalPrice,
                     cashOnDelivery,
                     orderItems: { create: orderItemsData },
-                    ...(currentUserId && { user: { connect: { id: currentUserId } } })
+                    ...(userId && { userId }),
                 },
                 include: { orderItems: true }
             });
@@ -99,27 +100,22 @@ const createOrder = async (payload: Orders, currentUserId?: string) => {
 const getUserOrders = async (currentUserId: string) => {
     return await prisma.orders.findMany({
         where: { userId: currentUserId },
-        select: { name: true, phone: true, orderItems: true }
+        select: { id: true, name: true, phone: true, totalAmount: true, orderItems: true }
     })
 }
-
 
 // Get all orders by Seller
-const getAllOrders = async (currentUserId: string) => {
-    return await prisma.orders.findMany({
-        where: { orderItems: { some: { medicine: { userId: currentUserId } } } },
-        include: { orderItems: { include: { medicine: true } } },
-        orderBy: { createdAt: "desc" }
-    });
+const getAllOrders = async () => {
+    return await prisma.orders.findMany();
 };
 
-// Get order by userId => Seller
-const getOrderByUserId = async (id: string) => {
+
+const getSellerOrders = async (currentUserId: string) => {
     return await prisma.orders.findMany({
-        where: { userId: id },
-        include: { orderItems: true }
+        where: { orderItems: { some: { sellerId: currentUserId } } }
     })
 }
+
 const getOrderById = async (orderId: string) => {
     return await prisma.orders.findUnique({
         where: { id: orderId },
@@ -129,7 +125,6 @@ const getOrderById = async (orderId: string) => {
 // Update order status by Seller.
 const updateOrderStatusById = async (orderId: string, payload: Status) => {
     const { status } = payload;
-
     return await prisma.orders.update({ where: { id: orderId }, data: { status } });
 };
 
@@ -139,5 +134,5 @@ export const orderService = {
     getAllOrders,
     getOrderById,
     updateOrderStatusById,
-    getOrderByUserId,
+    getSellerOrders,
 }

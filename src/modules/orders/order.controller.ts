@@ -5,7 +5,7 @@ import { orderService } from "./order.service"
 const createOrder = async (req: Request, res: Response) => {
 
     try {
-        const result = await orderService.createOrder(req.body, req.user?.id as string);
+        const result = await orderService.createOrder(req.body);
 
         res.status(201).json({
             success: true,
@@ -41,7 +41,7 @@ const getUserOrders = async (req: Request, res: Response) => {
 const getAllOrders = async (req: Request, res: Response) => {
 
     try {
-        const result = await orderService.getAllOrders(req.user?.id as string);
+        const result = await orderService.getAllOrders();
 
         res.status(200).json({
             success: true,
@@ -56,16 +56,16 @@ const getAllOrders = async (req: Request, res: Response) => {
         });
     }
 }
+const getSellerOrders = async (req: Request, res: Response) => {
 
-const getOrderByUserId = async (req: Request, res: Response) => {
     try {
-        const result = await orderService.getOrderByUserId(req.params?.id as string);
-
+        const result = await orderService.getSellerOrders(req.user?.id as string);
         res.status(200).json({
             success: true,
-            message: "order retrieved successfully.",
+            message: "All orders retrieved successfully.",
             data: result,
         });
+
     } catch (error: any) {
         res.status(500).send({
             success: false,
@@ -73,6 +73,7 @@ const getOrderByUserId = async (req: Request, res: Response) => {
         });
     }
 }
+
 const getOrderById = async (req: Request, res: Response) => {
     try {
         const result = await orderService.getOrderById(req.params?.id as string);
@@ -112,5 +113,6 @@ export const orderController = {
     getAllOrders,
     getOrderById,
     updateOrderStatusById,
-    getOrderByUserId
+    // getOrderByUserId,
+    getSellerOrders,
 }

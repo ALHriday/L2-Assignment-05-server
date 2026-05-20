@@ -8,7 +8,7 @@ const upload = multer({ dest: "uploads/" });
 
 //Seller
 router.post('/seller/medicines', upload.single("image"), Auth(UserRole.SELLER, UserRole.ADMIN), medicinesController.createMedicine);
-router.put('/seller/medicines/:id', Auth(UserRole.SELLER), medicinesController.updateMedicine);
+router.patch('/seller/medicines/:id', Auth(UserRole.SELLER), medicinesController.updateMedicine);
 router.delete('/seller/medicines/:id', Auth(UserRole.SELLER), medicinesController.deleteMedicine);
 router.get('/stats', Auth(UserRole.ADMIN, UserRole.SELLER), medicinesController.getStats);
 router.get('/getMedicineByUser', Auth(UserRole.ADMIN, UserRole.SELLER), medicinesController.getMedicineByUser);
