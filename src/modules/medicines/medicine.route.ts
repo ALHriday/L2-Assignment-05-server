@@ -1,8 +1,8 @@
 import express from "express"
 
 // import multer from "multer";
-import { Auth, UserRole } from "../../middlewares/auth.js";
-import { medicinesController } from "./medicine.controller.js";
+import { Auth, UserRole } from "../../middlewares/auth";
+import { medicinesController } from "./medicine.controller";
 
 const router = express.Router();
 // const upload = multer({ dest: "uploads/" });
@@ -22,6 +22,7 @@ router.get('/medicines/:id', medicinesController.getMedicineById);
 router.get('/categories', medicinesController.getMedicinesCategories);
 router.get('/getMedicinesLen', medicinesController.getMedicinesLen);
 router.get('/getAllCategory', medicinesController.getAllCategory);
+router.get('/getAllManufacturer', medicinesController.getAllMedicineManufacturer);
 
 
 export const medicinesRoutes = router;

@@ -1,5 +1,5 @@
-// import { uploadImage } from "../../lib/cloudinary.js";
-import { prisma } from "../../lib/prisma.js";
+// import { uploadImage } from "../../lib/cloudinary";
+import { prisma } from "../../lib/prisma";
 
 
 const getAllUsers = async () => {

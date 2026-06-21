@@ -1,7 +1,7 @@
 import express from "express";
 // import multer from "multer";
-import { Auth, UserRole } from "../../middlewares/auth.js";
-import { userController } from "./user.controller.js";
+import { Auth, UserRole } from "../../middlewares/auth";
+import { userController } from "./user.controller";
 
 const router = express.Router();
 

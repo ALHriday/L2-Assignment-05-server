@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { medicinesServices } from "./medicine.service.js";
-import { UserRole } from "../../middlewares/auth.js";
+import { medicinesServices } from "./medicine.service";
+import { UserRole } from "../../middlewares/auth";
 
 
 const createMedicine = async (req: Request, res: Response) => {
@@ -63,15 +63,13 @@ const deleteMedicine = async (req: Request, res: Response) => {
     }
 };
 
-type Sort = 'asc' | 'desc';
-
 const getMedicines = async (req: Request, res: Response) => {
 
-    const { search, manufacturer, sort, categoryId, skip } = req.query;
+    const { search, manufacturer, sortField, sortOrder, categoryId, skip } = req.query;
     const skipItem = skip ? Number(skip) : 0;
 
     try {
-        const result = await medicinesServices.getMedicines(search as string, manufacturer as string, sort as Sort, categoryId as string, skipItem);
+        const result = await medicinesServices.getMedicines(search as string, manufacturer as string, sortField as any, sortOrder as any, categoryId as string, skipItem);
 
         res.status(200).json({
             success: true,
@@ -136,6 +134,23 @@ const getAllCategory = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             message: "All Medicines category retrieved successfully.",
+            data: result,
+        });
+
+    } catch (error: any) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
+const getAllMedicineManufacturer = async (req: Request, res: Response) => {
+
+    try {
+        const result = await medicinesServices.getAllMedicineManufacturer();
+        res.status(200).json({
+            success: true,
+            message: "All Medicines manufacturer retrieved successfully.",
             data: result,
         });
 
@@ -217,4 +232,5 @@ export const medicinesController = {
     getMedicinesLen,
     getAllCategory,
     getMedicineByUser,
+    getAllMedicineManufacturer
 }

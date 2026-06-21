@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { prisma } from "./prisma.js";
 import nodemailer from "nodemailer"
-import { emailTemplate } from "../template/emailTemplate.js";
+import { prisma } from "./prisma";
+import { emailTemplate } from "../template/emailTemplate";
 import { oAuthProxy } from "better-auth/plugins";
 
 const transporter = nodemailer.createTransport({
@@ -20,12 +20,9 @@ export const auth = betterAuth({
     database: prismaAdapter(prisma, {
         provider: "postgresql",
     }),
-    baseURL: process.env.BETTER_AUTH_URL!,
+    baseURL: process.env.FRONTEND_URL!,
     trustedOrigins: [process.env.FRONTEND_URL!],
     secret: process.env.BETTER_AUTH_SECRET!,
-    account: {
-        skipStateCookieCheck: true,
-    },
     user: {
         additionalFields: {
             role: {
@@ -43,9 +40,6 @@ export const auth = betterAuth({
                 required: false,
             },
         }
-    },
-    session: {
-        deferSessionRefresh: true,
     },
     emailAndPassword: {
         enabled: true,
@@ -73,22 +67,33 @@ export const auth = betterAuth({
         google: {
             prompt: "select_account consent",
             accessType: "offline",
-            clientId: process.env.GOOGLE_CLIENT_ID! as string,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET! as string,
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
         },
     },
     advanced: {
-        useSecureCookies: true,
-        defaultCookieAttributes: {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            partitioned: true,
-        },
-        crossSubDomainCookies: {
-            enabled: true,
+        cookies: {
+            session_token: {
+                name: "session_token",
+                attributes: {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    partitioned: true,
+                },
+            },
+            state: {
+                name: "session_token",
+                attributes: {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: "none",
+                    partitioned: true,
+                },
+            },
         },
     },
+
     plugins: [oAuthProxy()],
 });
 

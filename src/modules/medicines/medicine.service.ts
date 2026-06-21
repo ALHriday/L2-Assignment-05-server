@@ -1,6 +1,6 @@
 // import { uploadImage } from "../../lib/cloudinary.js";
-import { prisma } from "../../lib/prisma.js";
-import { UserRole } from "../../middlewares/auth.js";
+import { prisma } from "../../lib/prisma";
+import { UserRole } from "../../middlewares/auth";
 
 export interface medicineModel {
     title: string;
@@ -25,7 +25,7 @@ const createMedicine = async (payload: medicineModel, currentUserId: string) => 
     // }
 
     // const imageURL = await uploadImage(file);
-    const imageURL = "https://img.icons8.com/?size=100&id=undefined&format=png&color=000000";
+    const imageURL = "https://img.icons8.com/?size=100&id=gZjuzZtAaWv6&format=png&color=000000";
 
     const medicine = await prisma.medicines.create({
         data: {
@@ -89,9 +89,14 @@ const getMedicinesLen = async () => {
 }
 
 
-// All Users
-const getMedicines = async (search?: string, m?: string, sort?: 'asc' | 'desc', categoryId?: string, skip?: number) => {
+type SortField = 'price' | 'manufacturer' | 'createdAt';
+type SortOrder = 'asc' | 'desc';
+
+// For All Users
+const getMedicines = async (search?: string, m?: string, sortField: SortField = 'price', sortOrder: SortOrder = 'asc', categoryId?: string, skip?: number) => {
+
     const where: any = {};
+
     if (search) {
         where.title = {
             contains: search,
@@ -112,7 +117,7 @@ const getMedicines = async (search?: string, m?: string, sort?: 'asc' | 'desc', 
         where,
         skip: skip ? skip * 10 : 0,
         take: 10,
-        orderBy: { price: sort === 'asc' ? 'asc' : 'desc' },
+        orderBy: { [sortField]: sortOrder },
     });
 };
 
@@ -123,12 +128,19 @@ const getMedicineById = async (medicineId: string) => {
 const getMedicinesCategories = async () => {
     return await prisma.medicines.findMany({ select: { category: true }, distinct: ['categoryId'], });
 };
+
 const getAllCategory = async () => {
     return await prisma.categories.findMany();
 };
+
 const getMedicineByUser = async (userId: string) => {
     return await prisma.medicines.findMany({ where: { userId: userId } });
 };
+const getAllMedicineManufacturer = async () => {
+    return await prisma.medicines.findMany({ select: { manufacturer: true }, distinct: 'manufacturer' });
+};
+
+
 
 export const medicinesServices = {
     createMedicine,
@@ -141,4 +153,5 @@ export const medicinesServices = {
     getMedicinesLen,
     getAllCategory,
     getMedicineByUser,
+    getAllMedicineManufacturer,
 };

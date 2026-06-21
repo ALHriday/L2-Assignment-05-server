@@ -34,7 +34,7 @@ Verify Email
 If you did not create this account, you can safely ignore this email.
 </p>
 
-<p style="color:#F7F7F7;">${url}</p>
+<p style="color:#ffffff;">${url}</p>
 
 </td>
 </tr>
