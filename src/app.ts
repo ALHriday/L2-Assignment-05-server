@@ -32,6 +32,11 @@ app.use("/api", medicinesRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", userRoutes);
 
+app.post("/api/payment/webhook", express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+    console.log("Webhook received", req.body);
+    res.status(200).json({ success: true });
+});
+
 app.get('/', (req: Request, res: Response) => {
     res.status(200).json({ success: true, message: 'MediStore server is running...' });
 });
